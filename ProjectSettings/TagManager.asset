@@ -7,6 +7,7 @@ TagManager:
   - Right Hand
   - Left Hand
   - Whiteboard
+  - Sprite
   layers:
   - Default
   - TransparentFX
