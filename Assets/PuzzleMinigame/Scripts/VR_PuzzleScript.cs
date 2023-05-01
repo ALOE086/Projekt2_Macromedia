@@ -17,43 +17,34 @@ public class VR_PuzzleScript : MonoBehaviour
 
     [SerializeField] InputActionProperty rightControllerActivate;
     [SerializeField] XRBaseController rightHand;
-    [SerializeField] private Transform raycastOrigin;
 
-    
+    private bool allowMove = true;
 
+    RaycastHit hit;
 
 
     void Start()
     {
         Shuffle();
-
     }
 
 
-
-
-    void Update()
+    private void FixedUpdate()
     {
         if (rightControllerActivate.action.IsPressed())
         {
-            RaycastHit2D hit = Physics2D.Raycast(rightHand.transform.position, rightHand.transform.forward);
-            Debug.Log("Hit: " + hit.transform.position);
-            Debug.Log("Empty: " + emptySpace.position);
-            if (Vector2.Distance(emptySpace.position, hit.transform.position) < 4)
+            
+            if (allowMove == true)
             {
-                Vector2 lastEmptySpacePostion = emptySpace.position;
-                TileScript thisTile = hit.transform.GetComponent<TileScript>();
-                emptySpace.position = thisTile.targetPosition;
-                thisTile.targetPosition = lastEmptySpacePostion;
-                int tileIndex = findIndex(thisTile);
-                tiles[emptySpaceIndex] = tiles[tileIndex];
-                tiles[tileIndex] = null;
-                emptySpaceIndex = tileIndex;
+                StartCoroutine(MoveTiles());
             }
+                
+
         }
-               
-        
-        
+    }
+
+    void Update()
+    {
         int correctTiles = 0;
         foreach (var a in tiles)
         {
@@ -68,12 +59,40 @@ public class VR_PuzzleScript : MonoBehaviour
         }
         if (correctTiles == tiles.Length - 1)
         {
-            Debug.Log("WOOONNN!!!!");
+            allowMove = false;
+
         }
 
 
     }
 
+
+   
+
+    IEnumerator MoveTiles()
+    {
+        allowMove = false;
+
+        if (Physics.Raycast(rightHand.transform.position, rightHand.transform.forward, out hit, 1000f))
+        {
+            
+            if (Vector2.Distance(emptySpace.position, hit.transform.position) < 4)
+            {
+                Vector2 lastEmptySpacePostion = emptySpace.position;
+                TileScript thisTile = hit.transform.GetComponent<TileScript>();
+                emptySpace.position = thisTile.targetPosition;
+                thisTile.targetPosition = lastEmptySpacePostion;
+                int tileIndex = findIndex(thisTile);
+                tiles[emptySpaceIndex] = tiles[tileIndex];
+                tiles[tileIndex] = null;
+                emptySpaceIndex = tileIndex;
+                
+            }
+            
+        }
+        yield return new WaitForSeconds(0.3f);
+        allowMove = true;
+    }
     
 
     public void Shuffle()
